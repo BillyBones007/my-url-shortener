@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/BillyBones007/my-url-shortener/internal/db"
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
@@ -13,19 +14,19 @@ func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 	hash := hasher.UrlHash{}
 	switch r.Method {
 	case "POST":
-		url := r.FormValue("Url")
-		if !urlValid(url) {
+		recUrl := r.FormValue("Url")
+		if !urlValid(recUrl) {
 			http.Error(rw, "Url incorrected", http.StatusBadRequest)
 			return
 		}
-		if !dBase.UrlIsExist(url) {
-			dBase.InsertUrl(url, hash)
-			sUrl, _ := dBase.SelectShortUrl(url)
+		if !dBase.UrlIsExist(recUrl) {
+			dBase.InsertUrl(recUrl, hash)
+			sUrl, _ := dBase.SelectShortUrl(recUrl)
 			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			rw.WriteHeader(http.StatusCreated)
 			fmt.Fprintf(rw, sUrl)
 		} else {
-			sUrl, err := dBase.SelectShortUrl(url)
+			sUrl, err := dBase.SelectShortUrl(recUrl)
 			if err != nil {
 				http.Error(rw, err.Error(), http.StatusInternalServerError)
 				return
@@ -53,7 +54,11 @@ func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 // Валидация полученных ссылок
-func urlValid(url string) bool {
-	// TODO: добавить проверку ссылок на правильность написания
-	return true
+func urlValid(recUrl string) bool {
+	flag := false
+	parsedUrl, err := url.Parse(recUrl)
+	if err == nil && parsedUrl.Scheme != "" && parsedUrl.Host != "" {
+		flag = true
+	}
+	return flag
 }
