@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const characters = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ"
 
 // Интерфейс для работы с неким шифровщиком ссылок
 type UrlHasher interface {
@@ -22,7 +22,7 @@ func (h UrlHash) GetHash(longUrl string) string {
 	rand.Seed(time.Now().UnixNano())
 	shortUrl := make([]byte, 6)
 	for i, _ := range shortUrl {
-		shortUrl[i] = characters[rand.Intn(len(longUrl))]
+		shortUrl[i] = characters[rand.Intn(len(characters))]
 	}
 	s := string(shortUrl)
 	return "http://localhost:8080/" + s

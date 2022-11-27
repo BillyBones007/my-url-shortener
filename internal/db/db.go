@@ -24,9 +24,7 @@ type DBase interface {
 }
 
 // Тип для работы с мапой
-type DB struct {
-	LongUrl string
-}
+type DB struct{}
 
 // Проверяет, существует ли длинный url в базе
 func (d DB) UrlIsExist(lurl string) bool {
@@ -56,6 +54,7 @@ func (d DB) InsertUrl(lurl string, h hasher.UrlHasher) error {
 
 // Возвращает длинный url из мапы на основе короткого url
 func (d DB) SelectLongUrl(shortUrl string) (longUrl string, err error) {
+	shortUrl = "http://localhost:8080" + shortUrl
 	if DataBase[shortUrl] == "" {
 		longUrl = ""
 		err = errors.New("URL not found")
