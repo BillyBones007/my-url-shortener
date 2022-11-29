@@ -17,17 +17,17 @@ var DataBase map[string]string
 
 // Интерфейс для работы с некой базой данных
 type DBase interface {
-	InsertUrl(longUrl string, h hasher.UrlHasher) error
-	SelectLongUrl(shortUrl string) (longUrl string, err error)
-	SelectShortUrl(longUrl string) (shortUrl string, err error)
-	UrlIsExist(longUrl string) bool
+	InsertURL(longURL string, h hasher.URLHasher) error
+	SelectLongURL(shortURL string) (longURL string, err error)
+	SelectShortURL(longURL string) (shortURL string, err error)
+	URLIsExist(longURL string) bool
 }
 
 // Тип для работы с мапой
 type DB struct{}
 
 // Проверяет, существует ли длинный url в базе
-func (d DB) UrlIsExist(lurl string) bool {
+func (d DB) URLIsExist(lurl string) bool {
 	flag := false
 	for _, long := range DataBase {
 		if long == lurl {
@@ -39,13 +39,13 @@ func (d DB) UrlIsExist(lurl string) bool {
 }
 
 // Заполняет мапу. Получает длинный и короткий url
-func (d DB) InsertUrl(lurl string, h hasher.UrlHasher) error {
+func (d DB) InsertURL(lurl string, h hasher.URLHasher) error {
 	// На случай если GetHash выдаст shortUrl, который уже есть
 	// в мапе, используем цикл до тех пор, пока не получим уникальное значение
 	for {
-		shortUrl := h.GetHash(lurl)
-		if DataBase[shortUrl] == "" {
-			DataBase[shortUrl] = lurl
+		shortURL := h.GetHash(lurl)
+		if DataBase[shortURL] == "" {
+			DataBase[shortURL] = lurl
 			break
 		}
 	}
@@ -53,30 +53,30 @@ func (d DB) InsertUrl(lurl string, h hasher.UrlHasher) error {
 }
 
 // Возвращает длинный url из мапы на основе короткого url
-func (d DB) SelectLongUrl(shortUrl string) (longUrl string, err error) {
-	if DataBase[shortUrl] == "" {
-		longUrl = ""
+func (d DB) SelectLongURL(shortURL string) (longURL string, err error) {
+	if DataBase[shortURL] == "" {
+		longURL = ""
 		err = errors.New("URL not found")
-		return longUrl, err
+		return longURL, err
 	}
-	longUrl = DataBase[shortUrl]
-	return longUrl, nil
+	longURL = DataBase[shortURL]
+	return longURL, nil
 }
 
 // Возвращает короткий url из мапы на основе длинного url
-func (d DB) SelectShortUrl(longUrl string) (shortUrl string, err error) {
+func (d DB) SelectShortURL(longURL string) (shortURL string, err error) {
 	flag := false
 	for k, v := range DataBase {
-		if v == longUrl {
-			shortUrl = k
+		if v == longURL {
+			shortURL = k
 			flag = true
 			break
 		}
 	}
 	if !flag {
-		err = errors.New("URL not found")
-		shortUrl = ""
-		return shortUrl, nil
+		// err = errors.New("URL not found")
+		shortURL = ""
+		return shortURL, nil
 	}
-	return shortUrl, err
+	return shortURL, err
 }

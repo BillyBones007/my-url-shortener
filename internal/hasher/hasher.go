@@ -8,22 +8,22 @@ import (
 const characters = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ"
 
 // Интерфейс для работы с неким шифровщиком ссылок
-type UrlHasher interface {
-	GetHash(longUrl string) string
+type URLHasher interface {
+	GetHash(longURL string) string
 }
 
 // Тип для работы с шифрование ссылки
-type UrlHash struct {
-	LongUrl string
+type URLHash struct {
+	LongURL string
 }
 
 // Возвращает короткую ссылку
-func (h UrlHash) GetHash(longUrl string) string {
+func (h URLHash) GetHash(longURL string) string {
 	rand.Seed(time.Now().UnixNano())
-	shortUrl := make([]byte, 6)
-	for i, _ := range shortUrl {
-		shortUrl[i] = characters[rand.Intn(len(characters))]
+	shortURL := make([]byte, 6)
+	for i := range shortURL {
+		shortURL[i] = characters[rand.Intn(len(characters))]
 	}
-	s := string(shortUrl)
+	s := string(shortURL)
 	return "/" + s
 }

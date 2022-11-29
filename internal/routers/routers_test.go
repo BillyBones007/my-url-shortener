@@ -41,6 +41,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, endPoint string, bod
 		require.NoError(t, err)
 
 		resp, err := http.DefaultClient.Do(req)
+		defer resp.Body.Close()
 		require.NoError(t, err)
 
 		rd.statusCode = resp.StatusCode
@@ -53,13 +54,13 @@ func TestRouter(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	longUrl := "https://habr.com/ru/post/702374/"
+	longURL := "https://habr.com/ru/post/702374/"
 
-	testRequest(t, ts, "POST", "", longUrl, &rd)
+	testRequest(t, ts, "POST", "", longURL, &rd)
 	assert.Equal(t, http.StatusCreated, rd.statusCode)
 
 	testRequest(t, ts, "GET", rd.body, "", &rd)
 	assert.Equal(t, http.StatusTemporaryRedirect, rd.statusCode)
-	assert.Equal(t, longUrl, rd.location)
+	assert.Equal(t, longURL, rd.location)
 
 }

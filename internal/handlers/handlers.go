@@ -11,9 +11,9 @@ import (
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
 )
 
-func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
+func ShortURLHandler(rw http.ResponseWriter, r *http.Request) {
 	dBase := db.DB{}
-	hash := hasher.UrlHash{}
+	hash := hasher.URLHash{}
 	requestHost := r.Host
 	if r.URL.Scheme == "" {
 		requestHost = "http://" + requestHost
@@ -31,19 +31,19 @@ func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 			http.Error(rw, "Url incorrected", http.StatusBadRequest)
 			return
 		}
-		if !dBase.UrlIsExist(string(body)) {
-			dBase.InsertUrl(string(body), hash)
+		if !dBase.URLIsExist(string(body)) {
+			dBase.InsertURL(string(body), hash)
 		}
 
-		sUrl, err := dBase.SelectShortUrl(string(body))
+		sURL, err := dBase.SelectShortURL(string(body))
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		sUrl = requestHost + sUrl
+		sURL = requestHost + sURL
 		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		rw.WriteHeader(http.StatusCreated)
-		rw.Write([]byte(sUrl))
+		rw.Write([]byte(sURL))
 
 	case "GET":
 		q := r.URL.EscapedPath()
@@ -51,11 +51,11 @@ func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 			http.Error(rw, "The query parameter is missing", http.StatusBadRequest)
 			return
 		}
-		lUrl, err := dBase.SelectLongUrl(q)
+		lURL, err := dBase.SelectLongURL(q)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 		}
-		rw.Header().Set("Location", lUrl)
+		rw.Header().Set("Location", lURL)
 		rw.WriteHeader(http.StatusTemporaryRedirect)
 		fmt.Println(rw.Header())
 
@@ -65,10 +65,10 @@ func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 // Валидация полученных ссылок
-func urlValid(recUrl string) bool {
+func urlValid(recURL string) bool {
 	pattern := `https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`
 	flag := false
-	matched, err := regexp.Match(pattern, []byte(recUrl))
+	matched, err := regexp.Match(pattern, []byte(recURL))
 	if err != nil {
 		log.Printf("Ошибка возникла при вызове regexp.Match: %s", err)
 		return flag
