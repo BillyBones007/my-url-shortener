@@ -74,9 +74,9 @@ func (d DB) SelectShortURL(longURL string) (shortURL string, err error) {
 		}
 	}
 	if !flag {
-		// err = errors.New("URL not found")
+		err = errors.New("URL not found")
 		shortURL = ""
-		return shortURL, nil
+		return shortURL, err
 	}
-	return shortURL, err
+	return shortURL, nil
 }
