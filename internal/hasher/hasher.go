@@ -25,5 +25,5 @@ func (h UrlHash) GetHash(longUrl string) string {
 		shortUrl[i] = characters[rand.Intn(len(characters))]
 	}
 	s := string(shortUrl)
-	return "http://localhost:8080/" + s
+	return "/" + s
 }

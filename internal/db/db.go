@@ -54,7 +54,6 @@ func (d DB) InsertUrl(lurl string, h hasher.UrlHasher) error {
 
 // Возвращает длинный url из мапы на основе короткого url
 func (d DB) SelectLongUrl(shortUrl string) (longUrl string, err error) {
-	shortUrl = "http://localhost:8080" + shortUrl
 	if DataBase[shortUrl] == "" {
 		longUrl = ""
 		err = errors.New("URL not found")

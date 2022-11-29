@@ -3,8 +3,9 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"net/url"
+	"regexp"
 
 	"github.com/BillyBones007/my-url-shortener/internal/db"
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
@@ -13,10 +14,14 @@ import (
 func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 	dBase := db.DB{}
 	hash := hasher.UrlHash{}
+	requestHost := r.Host
+	if r.URL.Scheme == "" {
+		requestHost = "http://" + requestHost
+	}
+
 	switch r.Method {
 	case "POST":
 		body, err := io.ReadAll(r.Body)
-		fmt.Println(body)
 		defer r.Body.Close()
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -28,20 +33,17 @@ func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 		}
 		if !dBase.UrlIsExist(string(body)) {
 			dBase.InsertUrl(string(body), hash)
-			sUrl, _ := dBase.SelectShortUrl(string(body))
-			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
-			rw.WriteHeader(http.StatusCreated)
-			rw.Write([]byte(sUrl))
-		} else {
-			sUrl, err := dBase.SelectShortUrl(string(body))
-			if err != nil {
-				http.Error(rw, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
-			rw.WriteHeader(http.StatusCreated)
-			rw.Write([]byte(sUrl))
 		}
+
+		sUrl, err := dBase.SelectShortUrl(string(body))
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		sUrl = requestHost + sUrl
+		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		rw.WriteHeader(http.StatusCreated)
+		rw.Write([]byte(sUrl))
 
 	case "GET":
 		q := r.URL.EscapedPath()
@@ -64,16 +66,17 @@ func ShortUrlHandler(rw http.ResponseWriter, r *http.Request) {
 
 // Валидация полученных ссылок
 func urlValid(recUrl string) bool {
+	pattern := `https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`
 	flag := false
-	parsedUrl, err := url.Parse(recUrl)
-	fmt.Println(parsedUrl.Scheme)
-	fmt.Println(parsedUrl.Host)
-	if err == nil && parsedUrl.Scheme == "localhost" {
-		flag = true
+	matched, err := regexp.Match(pattern, []byte(recUrl))
+	if err != nil {
+		log.Printf("Ошибка возникла при вызове regexp.Match: %s", err)
 		return flag
 	}
-	if err == nil && parsedUrl.Scheme != "" && parsedUrl.Host != "" {
-		flag = true
+	if !matched {
+		log.Print("Ошибка валидации: Url не подходит под паттерн.")
+		return flag
 	}
+	flag = true
 	return flag
 }

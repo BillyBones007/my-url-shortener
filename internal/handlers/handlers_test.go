@@ -98,7 +98,7 @@ func TestShortUrlHandlerGet(t *testing.T) {
 			// Поэтому проверяем статус код и либо передаем полученный в POST запросе
 			// sUrl как есть, либо конструируем GET запрос с добавлением хоста
 			if resp.StatusCode != 400 {
-				reqGet := httptest.NewRequest(http.MethodGet, fmt.Sprintf("%s", sUrl), nil)
+				reqGet := httptest.NewRequest(http.MethodGet, sUrl, nil)
 				w = httptest.NewRecorder()
 				h.ServeHTTP(w, reqGet)
 				resp = w.Result()
