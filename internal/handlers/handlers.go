@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -57,7 +56,6 @@ func ShortURLHandler(rw http.ResponseWriter, r *http.Request) {
 		}
 		rw.Header().Set("Location", lURL)
 		rw.WriteHeader(http.StatusTemporaryRedirect)
-		fmt.Println(rw.Header())
 
 	default:
 		rw.WriteHeader(http.StatusBadRequest)

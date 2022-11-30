@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,10 +12,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type LogRedirects struct {
+	Transport http.RoundTripper
+}
+
+func (l LogRedirects) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	RData := &rd
+	t := l.Transport
+	if t == nil {
+		t = http.DefaultTransport
+	}
+	resp, err = t.RoundTrip(req)
+	if err != nil {
+		return
+	}
+	RData.sCodes = append(RData.sCodes, resp.StatusCode)
+	RData.locations = append(RData.locations, req.URL.String())
+	fmt.Printf("INFO redirect to: %v, status code: %d, location: %v\n", req.URL, resp.StatusCode, resp.Header.Get("Location"))
+	return resp, err
+}
+
 type returnData struct {
+	sCodes     []int
+	locations  []string
 	statusCode int
 	body       string
-	location   string
 }
 
 var rd returnData
@@ -37,15 +59,14 @@ func testRequest(t *testing.T, ts *httptest.Server, method, endPoint string, bod
 		rd.body = string(bodyResp)
 
 	case "GET":
+		client := &http.Client{Transport: LogRedirects{}}
 		req, err := http.NewRequest(http.MethodGet, rd.body, nil)
 		require.NoError(t, err)
 
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := client.Do(req)
 		defer resp.Body.Close()
 		require.NoError(t, err)
 
-		rd.statusCode = resp.StatusCode
-		rd.location = resp.Header.Get("Location")
 	}
 }
 
@@ -60,7 +81,7 @@ func TestRouter(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, rd.statusCode)
 
 	testRequest(t, ts, "GET", rd.body, "", &rd)
-	assert.Equal(t, http.StatusTemporaryRedirect, rd.statusCode)
-	assert.Equal(t, longURL, rd.location)
+	assert.Equal(t, http.StatusTemporaryRedirect, rd.sCodes[0])
+	assert.Equal(t, longURL, rd.locations[1])
 
 }
