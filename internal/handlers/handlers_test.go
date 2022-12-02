@@ -40,7 +40,7 @@ func TestShortUrlHandlerPost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.longURL))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(ShortURLHandler)
+			h := http.HandlerFunc(CreateShortURLHandler)
 			h.ServeHTTP(w, request)
 			resp := w.Result()
 			defer resp.Body.Close()
@@ -86,7 +86,7 @@ func TestShortUrlHandlerGet(t *testing.T) {
 			// POST запрос и сохранение полученного короткого url в sUrl
 			reqPost := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.longURL))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(ShortURLHandler)
+			h := http.HandlerFunc(CreateShortURLHandler)
 			h.ServeHTTP(w, reqPost)
 
 			resp := w.Result()
@@ -103,6 +103,7 @@ func TestShortUrlHandlerGet(t *testing.T) {
 			if resp.StatusCode != 400 {
 				reqGet := httptest.NewRequest(http.MethodGet, sURL, nil)
 				w = httptest.NewRecorder()
+				h = http.HandlerFunc(GetLongURLHandler)
 				h.ServeHTTP(w, reqGet)
 
 				resp = w.Result()
