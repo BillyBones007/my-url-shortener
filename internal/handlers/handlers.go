@@ -7,14 +7,18 @@ import (
 	"regexp"
 
 	"github.com/BillyBones007/my-url-shortener/internal/db"
+	"github.com/BillyBones007/my-url-shortener/internal/db/models"
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
 )
 
+type Handler struct {
+	Storage db.DBase
+	Hasher  hasher.URLHasher
+}
+
 // Обработчик POST запросов. Принимает длинный URL, проверяет его на валидность,
 // помещает его в базу данных и выдает в теле ответа короткий URL
-func CreateShortURLHandler(rw http.ResponseWriter, r *http.Request) {
-	dBase := db.DB{}
-	hash := hasher.URLHash{}
+func (h *Handler) CreateShortURLHandler(rw http.ResponseWriter, r *http.Request) {
 	requestHost := r.Host
 	if r.URL.Scheme == "" {
 		requestHost = "http://" + requestHost
@@ -30,40 +34,40 @@ func CreateShortURLHandler(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Url incorrected", http.StatusBadRequest)
 		return
 	}
-	if !dBase.URLIsExist(string(body)) {
-		dBase.InsertURL(string(body), hash)
+	model := models.Model{LongURL: string(body)}
+	if !h.Storage.URLIsExist(model) {
+		h.Storage.InsertURL(model.LongURL, h.Hasher)
 	}
 
-	sURL, err := dBase.SelectShortURL(string(body))
+	mURL, err := h.Storage.SelectShortURL(model.LongURL)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	sURL = requestHost + sURL
+	mURL.ShortURL = requestHost + mURL.ShortURL
 	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	rw.WriteHeader(http.StatusCreated)
-	rw.Write([]byte(sURL))
+	rw.Write([]byte(mURL.ShortURL))
 }
 
 // Обработчик GET запросов. Проверяет полученный короткий URL в базе,
 // достает на основе его оригинальный URL и делает по нему редирект
-func GetLongURLHandler(rw http.ResponseWriter, r *http.Request) {
-	dBase := db.DB{}
+func (h *Handler) GetLongURLHandler(rw http.ResponseWriter, r *http.Request) {
 	q := r.URL.EscapedPath()
 	if q == "/" {
 		http.Error(rw, "The query parameter is missing", http.StatusBadRequest)
 		return
 	}
-	lURL, err := dBase.SelectLongURL(q)
+	mURL, err := h.Storage.SelectLongURL(q)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 	}
-	rw.Header().Set("Location", lURL)
+	rw.Header().Set("Location", mURL.LongURL)
 	rw.WriteHeader(http.StatusTemporaryRedirect)
 }
 
 // Обработчик не подлежащих обработке запросов
-func BadRequestHandler(rw http.ResponseWriter, r *http.Request) {
+func (h *Handler) BadRequestHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusBadRequest)
 }
 

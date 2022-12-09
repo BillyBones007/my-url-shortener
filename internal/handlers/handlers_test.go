@@ -7,8 +7,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/BillyBones007/my-url-shortener/internal/db/maps"
+	"github.com/BillyBones007/my-url-shortener/internal/hasher/rand"
+
 	"github.com/stretchr/testify/assert"
 )
+
+var h rand.URLHash
+var m *maps.MapStorage = maps.NewStorage()
+var hndlr Handler = Handler{Storage: m, Hasher: h}
 
 func TestShortUrlHandlerPost(t *testing.T) {
 	type want struct {
@@ -40,7 +47,7 @@ func TestShortUrlHandlerPost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.longURL))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(CreateShortURLHandler)
+			h := http.HandlerFunc(hndlr.CreateShortURLHandler)
 			h.ServeHTTP(w, request)
 			resp := w.Result()
 			defer resp.Body.Close()
@@ -86,7 +93,7 @@ func TestShortUrlHandlerGet(t *testing.T) {
 			// POST запрос и сохранение полученного короткого url в sUrl
 			reqPost := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.longURL))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(CreateShortURLHandler)
+			h := http.HandlerFunc(hndlr.CreateShortURLHandler)
 			h.ServeHTTP(w, reqPost)
 
 			resp := w.Result()
@@ -103,7 +110,7 @@ func TestShortUrlHandlerGet(t *testing.T) {
 			if resp.StatusCode != 400 {
 				reqGet := httptest.NewRequest(http.MethodGet, sURL, nil)
 				w = httptest.NewRecorder()
-				h = http.HandlerFunc(GetLongURLHandler)
+				h = http.HandlerFunc(hndlr.GetLongURLHandler)
 				h.ServeHTTP(w, reqGet)
 
 				resp = w.Result()

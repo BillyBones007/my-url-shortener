@@ -8,9 +8,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/BillyBones007/my-url-shortener/internal/db/maps"
+	"github.com/BillyBones007/my-url-shortener/internal/hasher/rand"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var m *maps.MapStorage = maps.NewStorage()
+var h rand.URLHash
 
 type LogRedirects struct {
 	Transport http.RoundTripper
@@ -71,7 +76,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, endPoint string, bod
 }
 
 func TestRouter(t *testing.T) {
-	r := NewRouter()
+	r := NewRouter(m, h)
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

@@ -2,12 +2,16 @@ package main
 
 import (
 	"log"
-	"net/http"
 
-	"github.com/BillyBones007/my-url-shortener/internal/routers"
+	"github.com/BillyBones007/my-url-shortener/internal/app/server"
+	"github.com/BillyBones007/my-url-shortener/internal/db/maps"
+	"github.com/BillyBones007/my-url-shortener/internal/hasher/rand"
 )
 
 func main() {
-	r := routers.NewRouter()
-	log.Fatal(http.ListenAndServe(":8080", r))
+	addr := "localhost:8080"
+	db := maps.NewStorage()
+	hash := rand.URLHash{}
+	server := server.NewServer(addr, db, hash)
+	log.Fatal(server.ListenAndServe())
 }
