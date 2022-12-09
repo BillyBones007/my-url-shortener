@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/BillyBones007/my-url-shortener/internal/db/maps"
-	"github.com/BillyBones007/my-url-shortener/internal/hasher/rand"
+	"github.com/BillyBones007/my-url-shortener/internal/hasher/randchars"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var h rand.URLHash
+var h randchars.URLHash
 var m *maps.MapStorage = maps.NewStorage()
 var hndlr Handler = Handler{Storage: m, Hasher: h}
 

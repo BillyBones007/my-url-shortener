@@ -9,13 +9,13 @@ import (
 	"testing"
 
 	"github.com/BillyBones007/my-url-shortener/internal/db/maps"
-	"github.com/BillyBones007/my-url-shortener/internal/hasher/rand"
+	"github.com/BillyBones007/my-url-shortener/internal/hasher/randchars"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var m *maps.MapStorage = maps.NewStorage()
-var h rand.URLHash
+var h randchars.URLHash
 
 type LogRedirects struct {
 	Transport http.RoundTripper
