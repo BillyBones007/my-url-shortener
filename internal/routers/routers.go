@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func NewRouter(storage db.DBase, hasher hasher.URLHasher) chi.Router {
-	handler := handlers.Handler{Storage: storage, Hasher: hasher}
+func NewRouter(storage db.DBase, hasher hasher.URLHasher, baseURL string) chi.Router {
+	handler := handlers.Handler{Storage: storage, Hasher: hasher, BaseURL: baseURL}
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
@@ -19,6 +19,7 @@ func NewRouter(storage db.DBase, hasher hasher.URLHasher) chi.Router {
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{shortUrl}", handler.GetLongURLHandler)
 		r.Post("/", handler.CreateShortURLHandler)
+		r.Post("/api/shorten", handler.CreateInJSONShortURLHandler)
 		r.Put("/", handler.BadRequestHandler)
 		r.Delete("/", handler.BadRequestHandler)
 		r.Head("/", handler.BadRequestHandler)
