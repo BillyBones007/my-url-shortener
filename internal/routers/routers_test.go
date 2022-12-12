@@ -16,6 +16,7 @@ import (
 
 var m *maps.MapStorage = maps.NewStorage()
 var h randchars.URLHash
+var bu string = "http://localhost:8080"
 
 type LogRedirects struct {
 	Transport http.RoundTripper
@@ -76,7 +77,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, endPoint string, bod
 }
 
 func TestRouter(t *testing.T) {
-	r := NewRouter(m, h)
+	r := NewRouter(m, h, bu)
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
