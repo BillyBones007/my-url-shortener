@@ -139,6 +139,6 @@ func TestRouter(t *testing.T) {
 	assert.Equal(t, http.StatusTemporaryRedirect, rd.sCodes[0])
 	assert.Equal(t, longURL, rd.locations[1])
 
-	retPostJsonData := testPostJSONRequest(t, ts, "/api/shorten", "{'url': 'https://habr.com/ru/post/702373'}")
-	assert.Equal(t, http.StatusCreated, retPostJsonData.statusCode)
+	retPostJSONData := testPostJSONRequest(t, ts, "/api/shorten", "{'url': 'https://habr.com/ru/post/702373'}")
+	assert.Equal(t, http.StatusCreated, retPostJSONData.statusCode)
 }
