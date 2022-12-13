@@ -16,6 +16,12 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if cfg.ServerAddress == "" {
+		cfg.ServerAddress = ":8080"
+	}
+	if cfg.BaseURL == "" {
+		cfg.BaseURL = "http://localhost:8080"
+	}
 	cfg.Storage = maps.NewStorage()
 	cfg.Hash = randchars.URLHash{}
 }
