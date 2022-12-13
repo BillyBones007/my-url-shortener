@@ -14,6 +14,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type returnData struct {
+	statusCode int
+	body       []byte
+}
+
+type redirect struct {
+	sCodes    []int
+	locations []string
+}
+
+var rd redirect
 var m *maps.MapStorage = maps.NewStorage()
 var h randchars.URLHash
 var bu string = "http://localhost:8080"
@@ -38,43 +49,81 @@ func (l LogRedirects) RoundTrip(req *http.Request) (resp *http.Response, err err
 	return resp, err
 }
 
-type returnData struct {
-	sCodes     []int
-	locations  []string
-	statusCode int
-	body       string
+// Вспомогательная функция тестирования POST запроса (длинный url в теле запроса в виде строки)
+func testPostRequest(t *testing.T, ts *httptest.Server, endPoint string, body string) returnData {
+	req, err := http.NewRequest(http.MethodPost, ts.URL+endPoint, strings.NewReader(body))
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	bodyResp, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	var retPostData = returnData{statusCode: resp.StatusCode, body: bodyResp}
+
+	return retPostData
 }
 
-var rd returnData
+// Вспомогательная функция тестирования POST запроса (длинный url в теле запроса в виде json объекта)
+func testPostJSONRequest(t *testing.T, ts *httptest.Server, endPoint string, body string) returnData {
+	client := &http.Client{}
+	// req, err := http.NewRequest(http.MethodPost, ts.URL+endPoint, strings.NewReader(body))
+	// require.NoError(t, err)
+	resp, err := client.Post(ts.URL+endPoint, "application/json", strings.NewReader(body))
+	// resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
 
-func testRequest(t *testing.T, ts *httptest.Server, method, endPoint string, body string, rd *returnData) {
-	switch method {
-	case "POST":
-		req, err := http.NewRequest(http.MethodPost, ts.URL+endPoint, strings.NewReader(body))
-		require.NoError(t, err)
+	bodyResp, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
 
-		resp, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
+	defer resp.Body.Close()
 
-		bodyResp, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
+	var retPostData = returnData{statusCode: resp.StatusCode, body: bodyResp}
 
-		defer resp.Body.Close()
-
-		rd.statusCode = resp.StatusCode
-		rd.body = string(bodyResp)
-
-	case "GET":
-		client := &http.Client{Transport: LogRedirects{}}
-		req, err := http.NewRequest(http.MethodGet, rd.body, nil)
-		require.NoError(t, err)
-
-		resp, err := client.Do(req)
-		defer resp.Body.Close()
-		require.NoError(t, err)
-
-	}
+	return retPostData
 }
+
+func testGetRequest(t *testing.T, ts *httptest.Server, sURL string) {
+	client := &http.Client{Transport: LogRedirects{}}
+	req, err := http.NewRequest(http.MethodGet, sURL, nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+}
+
+// func testRequest(t *testing.T, ts *httptest.Server, method, endPoint string, body string, rd *returnData) {
+// 	switch method {
+// 	case "POST":
+// 		req, err := http.NewRequest(http.MethodPost, ts.URL+endPoint, strings.NewReader(body))
+// 		require.NoError(t, err)
+
+// 		resp, err := http.DefaultClient.Do(req)
+// 		require.NoError(t, err)
+
+// 		bodyResp, err := io.ReadAll(resp.Body)
+// 		require.NoError(t, err)
+
+// 		defer resp.Body.Close()
+
+// 		rd.statusCode = resp.StatusCode
+// 		rd.body = bodyResp
+
+// 	case "GET":
+// 		client := &http.Client{Transport: LogRedirects{}}
+// 		req, err := http.NewRequest(http.MethodGet, string(rd.body), nil)
+// 		require.NoError(t, err)
+
+// 		resp, err := client.Do(req)
+// 		defer resp.Body.Close()
+// 		require.NoError(t, err)
+
+// 	}
+// }
 
 func TestRouter(t *testing.T) {
 	r := NewRouter(m, h, bu)
@@ -83,11 +132,13 @@ func TestRouter(t *testing.T) {
 
 	longURL := "https://habr.com/ru/post/702374/"
 
-	testRequest(t, ts, "POST", "", longURL, &rd)
-	assert.Equal(t, http.StatusCreated, rd.statusCode)
+	retPostData := testPostRequest(t, ts, "/", longURL)
+	assert.Equal(t, http.StatusCreated, retPostData.statusCode)
 
-	testRequest(t, ts, "GET", rd.body, "", &rd)
+	testGetRequest(t, ts, string(retPostData.body))
 	assert.Equal(t, http.StatusTemporaryRedirect, rd.sCodes[0])
 	assert.Equal(t, longURL, rd.locations[1])
 
+	retPostJsonData := testPostJSONRequest(t, ts, "/api/shorten", "{'url': 'https://habr.com/ru/post/702373'}")
+	assert.Equal(t, http.StatusCreated, retPostJsonData.statusCode)
 }
