@@ -31,7 +31,13 @@ func (h *Handler) CreateShortURLHandler(rw http.ResponseWriter, r *http.Request)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	mURL.ShortURL = h.BaseURL + mURL.ShortURL
+	// Если переменная окружения $BASE_URL не была установлена,
+	// то конструируем конечный url из текущего адреса сервера
+	bURL := h.BaseURL
+	if bURL == "" {
+		bURL = "http://" + r.Host
+	}
+	mURL.ShortURL = bURL + mURL.ShortURL
 	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	rw.WriteHeader(http.StatusCreated)
 	rw.Write([]byte(mURL.ShortURL))
@@ -73,7 +79,13 @@ func (h *Handler) CreateInJSONShortURLHandler(rw http.ResponseWriter, r *http.Re
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	outObj := OutObj{Result: h.BaseURL + mURL.ShortURL}
+	// Если переменная окружения $BASE_URL не была установлена,
+	// то конструируем конечный url из текущего адреса сервера
+	bURL := h.BaseURL
+	if bURL == "" {
+		bURL = "http://" + r.Host
+	}
+	outObj := OutObj{Result: bURL + mURL.ShortURL}
 	b, err := json.Marshal(outObj)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
