@@ -27,7 +27,7 @@ type redirect struct {
 }
 
 type payloadJSON struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
 
 var rd redirect
@@ -116,7 +116,7 @@ func TestRouter(t *testing.T) {
 	assert.Equal(t, http.StatusTemporaryRedirect, rd.sCodes[0])
 	assert.Equal(t, longURL, rd.locations[1])
 
-	payload := payloadJSON{Url: "https://habr.com/ru/post/702373"}
+	payload := payloadJSON{URL: "https://habr.com/ru/post/702373"}
 	body, _ := json.Marshal(payload)
 	retPostJSONData := testPostJSONRequest(t, ts, "/api/shorten", body)
 	fmt.Printf("Return PostJSON: %v\n", string(retPostJSONData.body))
