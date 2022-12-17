@@ -5,9 +5,16 @@ import (
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
 )
 
+// Конфигурация сервера
 type Config struct {
-	ServerAddress string           `env:"SERVER_ADDRESS"` // фдрес запуска HTTP сервера (env $SERVER_ADDRESS)
-	BaseURL       string           `env:"BASE_URL"`       // базовый адресс результирующего сокращенного url (env $BASE_URL)
-	Storage       db.DBase         // объект хранилища, реализующий интерфейс db.DBase
-	Hash          hasher.URLHasher // объект хэшера, реализующий интерфейс hasher.URLHasher
+	// Адрес запуска HTTP сервера (env $SERVER_ADDRESS)
+	ServerAddress string `env:"SERVER_ADDRESS"`
+	// Базовый адресс результирующего сокращенного url (env $BASE_URL)
+	BaseURL string `env:"BASE_URL"`
+	// Путь к файлу хранилища (env $FILE_STORAGE_PATH)
+	StoragePATH string `env:"FILE_STORAGE_PATH"`
+	// Объект хранилища, реализующий интерфейс db.DBase (env $FILE_STORAGE_PATH)
+	Storage db.DBase
+	// Объект хэшера, реализующий интерфейс hasher.URLHasher
+	Hash hasher.URLHasher
 }

@@ -7,8 +7,8 @@ import (
 
 // Интерфейс для работы с некой базой данных
 type DBase interface {
-	InsertURL(longURL string, h hasher.URLHasher) error
-	SelectLongURL(shortURL string) (model models.Model, err error)
-	SelectShortURL(longURL string) (model models.Model, err error)
-	URLIsExist(model models.Model) bool
+	InsertURL(m *models.Model, h hasher.URLHasher) error
+	SelectLongURL(m *models.Model) (*models.Model, error)
+	SelectShortURL(m *models.Model) (*models.Model, error)
+	URLIsExist(m *models.Model) bool
 }

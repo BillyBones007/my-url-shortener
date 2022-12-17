@@ -7,7 +7,7 @@ import (
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
 )
 
-// Тип для работы с мапой
+// Тип для работы с мапой в роли основного хранилища
 type MapStorage struct {
 	DataBase map[string]string
 }
@@ -18,7 +18,7 @@ func NewStorage() *MapStorage {
 }
 
 // Проверяет, существует ли длинный url в базе
-func (m *MapStorage) URLIsExist(model models.Model) bool {
+func (m *MapStorage) URLIsExist(model *models.Model) bool {
 	flag := false
 	for _, long := range m.DataBase {
 		if long == model.LongURL {
@@ -29,14 +29,14 @@ func (m *MapStorage) URLIsExist(model models.Model) bool {
 	return flag
 }
 
-// Заполняет мапу. Получает длинный и короткий url
-func (m *MapStorage) InsertURL(lurl string, h hasher.URLHasher) error {
+// Заполняет мапу. Получает models.Model и хэшер
+func (m *MapStorage) InsertURL(model *models.Model, h hasher.URLHasher) error {
 	// На случай если GetHash выдаст shortUrl, который уже есть
 	// в мапе, используем цикл до тех пор, пока не получим уникальное значение
 	for {
-		shortURL := h.GetHash(lurl)
-		if m.DataBase[shortURL] == "" {
-			m.DataBase[shortURL] = lurl
+		model.ShortURL = h.GetHash(model.LongURL)
+		if m.DataBase[model.ShortURL] == "" {
+			m.DataBase[model.ShortURL] = model.LongURL
 			break
 		}
 	}
@@ -44,33 +44,27 @@ func (m *MapStorage) InsertURL(lurl string, h hasher.URLHasher) error {
 }
 
 // Возвращает длинный url из мапы на основе короткого url
-func (m *MapStorage) SelectLongURL(shortURL string) (model models.Model, err error) {
-	if m.DataBase[shortURL] == "" {
-		model.LongURL = ""
-		model.ShortURL = shortURL
-		err = errors.New("URL not found")
+func (m *MapStorage) SelectLongURL(model *models.Model) (*models.Model, error) {
+	if m.DataBase[model.ShortURL] == "" {
+		err := errors.New("URL not found")
 		return model, err
 	}
-	model.LongURL = m.DataBase[shortURL]
-	model.ShortURL = shortURL
+	model.LongURL = m.DataBase[model.ShortURL]
 	return model, nil
 }
 
 // Возвращает короткий url из мапы на основе длинного url
-func (m *MapStorage) SelectShortURL(longURL string) (model models.Model, err error) {
+func (m *MapStorage) SelectShortURL(model *models.Model) (*models.Model, error) {
 	flag := false
 	for k, v := range m.DataBase {
-		if v == longURL {
+		if v == model.LongURL {
 			model.ShortURL = k
-			model.LongURL = longURL
 			flag = true
 			break
 		}
 	}
 	if !flag {
-		err = errors.New("URL not found")
-		model.ShortURL = ""
-		model.LongURL = longURL
+		err := errors.New("URL not found")
 		return model, err
 	}
 	return model, nil

@@ -2,6 +2,6 @@ package models
 
 // Модель для работы с базой данных
 type Model struct {
-	LongURL  string
-	ShortURL string
+	ShortURL string `json:"short_url"`
+	LongURL  string `json:"long_url"`
 }

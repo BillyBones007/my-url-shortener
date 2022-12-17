@@ -22,11 +22,11 @@ func (h *Handler) CreateShortURLHandler(rw http.ResponseWriter, r *http.Request)
 		return
 	}
 	model := models.Model{LongURL: string(body)}
-	if !h.Storage.URLIsExist(model) {
-		h.Storage.InsertURL(model.LongURL, h.Hasher)
+	if !h.Storage.URLIsExist(&model) {
+		h.Storage.InsertURL(&model, h.Hasher)
 	}
 
-	mURL, err := h.Storage.SelectShortURL(model.LongURL)
+	mURL, err := h.Storage.SelectShortURL(&model)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -70,11 +70,11 @@ func (h *Handler) CreateInJSONShortURLHandler(rw http.ResponseWriter, r *http.Re
 		return
 	}
 	model := models.Model{LongURL: inObj.URL}
-	if !h.Storage.URLIsExist(model) {
-		h.Storage.InsertURL(model.LongURL, h.Hasher)
+	if !h.Storage.URLIsExist(&model) {
+		h.Storage.InsertURL(&model, h.Hasher)
 	}
 
-	mURL, err := h.Storage.SelectShortURL(model.LongURL)
+	mURL, err := h.Storage.SelectShortURL(&model)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
