@@ -22,4 +22,5 @@ vendor/
 .idea
 .vscode
 
-shortenertest
+./shortenertest
+cmd/shortener/storage.txt
