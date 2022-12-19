@@ -54,6 +54,7 @@ func serverConfigurator(cfg *server.Config, flagV *flagVars) {
 			cfg.Storage = maps.NewStorage()
 			cfg.Hash = randchars.URLHash{}
 			log.Println("INFO: $FILE_STORAGE_PATH, and flag -f is empty, map storage is used")
+			paramConfServerInfo()
 			return
 		}
 		var err error
@@ -63,8 +64,13 @@ func serverConfigurator(cfg *server.Config, flagV *flagVars) {
 			log.Println("INFO: map storage is used")
 			cfg.Storage = maps.NewStorage()
 			cfg.Hash = randchars.URLHash{}
+			paramConfServerInfo()
 			return
 		}
+		cfg.StoragePATH = flagV.sp
+		cfg.Hash = randchars.URLHash{}
+		paramConfServerInfo()
+		return
 	}
 	var err error
 	cfg.Storage, err = files.NewStorage(cfg.StoragePATH)
@@ -75,6 +81,11 @@ func serverConfigurator(cfg *server.Config, flagV *flagVars) {
 		cfg.Hash = randchars.URLHash{}
 	}
 	cfg.Hash = randchars.URLHash{}
+	paramConfServerInfo()
+}
+
+// Выводит информацию о конфигурации сервера
+func paramConfServerInfo() {
 	fmt.Println("INFO: Параметры конфигурирования сервера:")
 	fmt.Printf("Адрес сервера: %s\n", cfg.ServerAddress)
 	fmt.Printf("Базовый результирующий URL: %s\n", cfg.BaseURL)
