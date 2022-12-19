@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/BillyBones007/my-url-shortener/internal/app/server"
@@ -64,7 +65,19 @@ func serverConfigurator(cfg *server.Config, flagV *flagVars) {
 			cfg.Hash = randchars.URLHash{}
 			return
 		}
-
+	}
+	var err error
+	cfg.Storage, err = files.NewStorage(cfg.StoragePATH)
+	if err != nil {
+		log.Printf("ERROR: file storage error %s\n", err)
+		log.Println("INFO: map storage is used")
+		cfg.Storage = maps.NewStorage()
+		cfg.Hash = randchars.URLHash{}
 	}
 	cfg.Hash = randchars.URLHash{}
+	fmt.Println("INFO: Параметры конфигурирования сервера:")
+	fmt.Printf("Адрес сервера: %s\n", cfg.ServerAddress)
+	fmt.Printf("Базовый результирующий URL: %s\n", cfg.BaseURL)
+	fmt.Printf("Путь до файла-хранилища: %s\n", cfg.StoragePATH)
+	fmt.Printf("Указатель на объект хранилища: %v\n", cfg.Storage)
 }
