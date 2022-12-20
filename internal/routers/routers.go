@@ -18,9 +18,11 @@ func NewRouter(storage db.DBase, hasher hasher.URLHasher, baseURL string) chi.Ro
 	r.Use(middleware.Recoverer)
 
 	r.Route("/", func(r chi.Router) {
+		r.Use(middlewares.GzipDecompress)
+		r.Use(middlewares.GzipCompress)
 		r.Get("/{shortUrl}", handler.GetLongURLHandler)
-		r.With(middlewares.GzipHandle).Post("/", handler.CreateShortURLHandler)
-		r.With(middlewares.GzipHandle).Post("/api/shorten", handler.CreateInJSONShortURLHandler)
+		r.Post("/", handler.CreateShortURLHandler)
+		r.Post("/api/shorten", handler.CreateInJSONShortURLHandler)
 		r.Put("/", handler.BadRequestHandler)
 		r.Delete("/", handler.BadRequestHandler)
 		r.Head("/", handler.BadRequestHandler)
