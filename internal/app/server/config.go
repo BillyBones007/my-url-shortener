@@ -37,8 +37,9 @@ type FlagVars struct {
 // Конфигурирует сервер в зависимости от флагов командной строки и переменных окружения.
 // В приоритете значения из переменных окружения.
 func ServerConfigurator(cfg *Config, flagV *FlagVars) {
-	// Парсим переменные окружения в config.Config
-	err := env.Parse(&cfg)
+	fmt.Println("Вход в конфигуратор..")
+	// Парсим переменные окружения в Config
+	err := env.Parse(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
