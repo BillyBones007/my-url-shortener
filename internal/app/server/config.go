@@ -25,6 +25,7 @@ type Config struct {
 	Storage db.DBase
 	// Объект хэшера, реализующий интерфейс hasher.URLHasher
 	Hash hasher.URLHasher
+	// Ключ подписи создаваемых cookies (берется из файла key)
 }
 
 // Флаги командной строки
@@ -84,6 +85,8 @@ func ServerConfigurator(cfg *Config, flagV *FlagVars) {
 		log.Println("INFO: map storage is used")
 		cfg.Storage = maps.NewStorage()
 		cfg.Hash = randchars.URLHash{}
+		paramConfServerInfo(cfg)
+		return
 	}
 	cfg.Hash = randchars.URLHash{}
 	paramConfServerInfo(cfg)

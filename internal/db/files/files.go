@@ -50,7 +50,7 @@ func NewFileWriter(f *FileStorage) (*fileWriter, error) {
 	return &fileWriter{file: fileDescr, encoder: encoder}, nil
 }
 
-// Конструктор типа записи в файл-хранилище
+// Конструктор типа чтения из файл-хранилища
 func NewFileReader(f *FileStorage) (*fileReader, error) {
 	fileDescr, err := os.OpenFile(f.FilePATH, os.O_RDONLY|os.O_CREATE, 0777)
 	if err != nil {
