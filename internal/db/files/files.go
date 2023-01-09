@@ -184,5 +184,22 @@ func (f *FileStorage) SelectLongURL(model *models.Model) (*models.Model, error) 
 
 // Возвращает все сохраненные пары url заданным пользователем по uuid
 func (f *FileStorage) SelectAllForUUID(uuid string) ([]models.Model, error) {
-	return nil, nil
+	reader, err := NewFileReader(f)
+	if err != nil {
+		log.Fatalf("ERROR: %s\n", err)
+	}
+	defer reader.Close()
+	var result []models.Model
+	for {
+		var tmpDec tmpDecode
+		if err := reader.decoder.Decode(&tmpDec); err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatal(err)
+		}
+		if tmpDec.ID == uuid {
+			result = append(result, tmpDec.URLpair)
+		}
+	}
+	return result, nil
 }

@@ -37,7 +37,7 @@ func NewStorage() *MapStorage {
 // Провеяряет существование uuid в хранилище
 func (m *MapStorage) UUIDIsExist(uuid string) bool {
 	flag := false
-	for key, _ := range m.DataBase {
+	for key := range m.DataBase {
 		if key == uuid {
 			flag = true
 			break
