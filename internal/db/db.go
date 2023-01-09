@@ -7,8 +7,10 @@ import (
 
 // Интерфейс для работы с некой базой данных
 type DBase interface {
-	InsertURL(m *models.Model, h hasher.URLHasher) error
+	InsertURL(m *models.MainModel, h hasher.URLHasher) error
 	SelectLongURL(m *models.Model) (*models.Model, error)
-	SelectShortURL(m *models.Model) (*models.Model, error)
-	URLIsExist(m *models.Model) bool
+	// SelectShortURL(m *models.Model) (*models.Model, error)
+	// URLIsExist(m *models.Model) bool // утратила актуальность
+	UUIDIsExist(uuid string) bool
+	SelectAllForUUID(uuid string) ([]models.Model, error)
 }

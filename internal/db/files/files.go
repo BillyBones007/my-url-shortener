@@ -31,7 +31,7 @@ type fileReader struct {
 }
 
 // Тип для декодирования данных файла
-type tmpDecode models.Model
+type tmpDecode models.MainModel
 
 //_______________ Блок описания конструкторов ____________________________
 
@@ -75,7 +75,31 @@ func (fr *fileReader) Close() error {
 //_______________ Блок описания методов типа FileStorage ____________________________
 
 // Проверяет, существует ли длинный url в базе
-func (f *FileStorage) URLIsExist(model *models.Model) bool {
+// func (f *FileStorage) URLIsExist(model *models.Model) bool {
+// 	flag := false
+// 	reader, err := NewFileReader(f)
+// 	if err != nil {
+// 		log.Fatalf("ERROR: %s\n", err)
+// 	}
+// 	defer reader.Close()
+
+// 	for {
+// 		var tmpDec tmpDecode
+// 		if err := reader.decoder.Decode(&tmpDec); err == io.EOF {
+// 			break
+// 		} else if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		if tmpDec.LongURL == model.LongURL {
+// 			flag = true
+// 			break
+// 		}
+// 	}
+// 	return flag
+// }
+
+// Провеяряет существование uuid в хранилище
+func (f *FileStorage) UUIDIsExist(uuid string) bool {
 	flag := false
 	reader, err := NewFileReader(f)
 	if err != nil {
@@ -90,7 +114,7 @@ func (f *FileStorage) URLIsExist(model *models.Model) bool {
 		} else if err != nil {
 			log.Fatal(err)
 		}
-		if tmpDec.LongURL == model.LongURL {
+		if tmpDec.ID == uuid {
 			flag = true
 			break
 		}
@@ -98,14 +122,14 @@ func (f *FileStorage) URLIsExist(model *models.Model) bool {
 	return flag
 }
 
-// Записывает в файл. Получает models.Model и хэшер
-func (f *FileStorage) InsertURL(model *models.Model, h hasher.URLHasher) error {
+// Записывает в файл. Получает models.MainModel и хэшер
+func (f *FileStorage) InsertURL(model *models.MainModel, h hasher.URLHasher) error {
 	writer, err := NewFileWriter(f)
 	if err != nil {
 		log.Fatalf("ERROR: %s\n", err)
 	}
 	defer writer.Close()
-	model.ShortURL = h.GetHash(model.LongURL)
+	model.URLpair.ShortURL = h.GetHash(6)
 	writer.encoder.Encode(model)
 	return nil
 }
@@ -126,8 +150,8 @@ func (f *FileStorage) SelectLongURL(model *models.Model) (*models.Model, error) 
 		} else if err != nil {
 			log.Fatal(err)
 		}
-		if tmpDec.ShortURL == model.ShortURL {
-			model.LongURL = tmpDec.LongURL
+		if tmpDec.URLpair.ShortURL == model.ShortURL {
+			model.LongURL = tmpDec.URLpair.LongURL
 			break
 		}
 	}
@@ -135,25 +159,30 @@ func (f *FileStorage) SelectLongURL(model *models.Model) (*models.Model, error) 
 }
 
 // Возвращает короткий url из файла на основе длинного url
-func (f *FileStorage) SelectShortURL(model *models.Model) (*models.Model, error) {
-	reader, err := NewFileReader(f)
-	if err != nil {
-		log.Fatalf("ERROR: %s\n", err)
-	}
-	defer reader.Close()
+// func (f *FileStorage) SelectShortURL(model *models.Model) (*models.Model, error) {
+// 	reader, err := NewFileReader(f)
+// 	if err != nil {
+// 		log.Fatalf("ERROR: %s\n", err)
+// 	}
+// 	defer reader.Close()
 
-	for {
-		var tmpDec tmpDecode
-		if err := reader.decoder.Decode(&tmpDec); err == io.EOF {
-			err = errors.New("URL not found")
-			return nil, err
-		} else if err != nil {
-			log.Fatal(err)
-		}
-		if tmpDec.LongURL == model.LongURL {
-			model.ShortURL = tmpDec.ShortURL
-			break
-		}
-	}
-	return model, nil
+// 	for {
+// 		var tmpDec tmpDecode
+// 		if err := reader.decoder.Decode(&tmpDec); err == io.EOF {
+// 			err = errors.New("URL not found")
+// 			return nil, err
+// 		} else if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		if tmpDec.LongURL == model.LongURL {
+// 			model.ShortURL = tmpDec.ShortURL
+// 			break
+// 		}
+// 	}
+// 	return model, nil
+// }
+
+// Возвращает все сохраненные пары url заданным пользователем по uuid
+func (f *FileStorage) SelectAllForUUID(uuid string) ([]models.Model, error) {
+	return nil, nil
 }
