@@ -26,6 +26,7 @@ func NewRouter(storage db.DBase, hasher hasher.URLHasher, baseURL string) chi.Ro
 		r.Use(middlewares.GzipCompress)
 		r.Get("/{shortUrl}", handler.GetLongURLHandler)
 		r.Get("/api/user/urls", handler.GetAllURLsHandler)
+		r.Get("/ping", handler.GetPing)
 		r.Post("/", handler.CreateShortURLHandler)
 		r.Post("/api/shorten", handler.CreateInJSONShortURLHandler)
 		r.Put("/", handler.BadRequestHandler)

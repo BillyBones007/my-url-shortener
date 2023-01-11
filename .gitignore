@@ -23,4 +23,4 @@ vendor/
 .idea
 .vscode
 
-cmd/shortener/storage.txt
+docker-compose.yaml

@@ -1,6 +1,7 @@
 package files
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/BillyBones007/my-url-shortener/internal/db/models"
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 //_______________ Блок описания типов ____________________________
@@ -202,4 +205,29 @@ func (f *FileStorage) SelectAllForUUID(uuid string) ([]models.Model, error) {
 		}
 	}
 	return result, nil
+}
+
+func (f *FileStorage) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
+	ct := pgconn.CommandTag{}
+	return ct, nil
+}
+
+func (f *FileStorage) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
+	return nil, nil
+}
+
+func (f *FileStorage) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
+	return nil
+}
+
+func (f *FileStorage) Begin(ctx context.Context) (pgx.Tx, error) {
+	return nil, nil
+}
+
+func (f *FileStorage) Close(ctx context.Context) error {
+	return nil
+}
+
+func (f *FileStorage) Ping(ctx context.Context) error {
+	return nil
 }

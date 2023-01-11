@@ -8,6 +8,7 @@ import (
 	"github.com/BillyBones007/my-url-shortener/internal/db"
 	"github.com/BillyBones007/my-url-shortener/internal/db/files"
 	"github.com/BillyBones007/my-url-shortener/internal/db/maps"
+	"github.com/BillyBones007/my-url-shortener/internal/db/postgres"
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
 	"github.com/BillyBones007/my-url-shortener/internal/hasher/randchars"
 	"github.com/caarlos0/env"
@@ -21,20 +22,23 @@ type Config struct {
 	BaseURL string `env:"BASE_URL"`
 	// Путь к файлу хранилища (env $FILE_STORAGE_PATH)
 	StoragePATH string `env:"FILE_STORAGE_PATH"`
-	// Объект хранилища, реализующий интерфейс db.DBase (env $FILE_STORAGE_PATH)
+	// Объект хранилища, реализующий интерфейс db.DBase
 	Storage db.DBase
 	// Объект хэшера, реализующий интерфейс hasher.URLHasher
 	Hash hasher.URLHasher
-	// Ключ подписи создаваемых cookies (берется из файла key)
+	// строка с адресом подключения к БД
+	DSN string `env:"DATABASE_DSN"`
 }
 
 // Флаги командной строки
 type FlagVars struct {
-	bu string // base url
-	sa string // server address
-	sp string // storage path
+	bu  string // base url
+	sa  string // server address
+	sp  string // storage path
+	dsn string // dsn
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 // Конфигурирует сервер в зависимости от флагов командной строки и переменных окружения.
 // В приоритете значения из переменных окружения.
 func ServerConfigurator(cfg *Config, flagV *FlagVars) {
@@ -47,6 +51,7 @@ func ServerConfigurator(cfg *Config, flagV *FlagVars) {
 	flag.StringVar(&flagV.bu, "b", "", "Base ULR. If empty, it is replaced by the address of the running server.")
 	flag.StringVar(&flagV.sa, "a", ":8080", "Server Address. By default: localhost:8080.")
 	flag.StringVar(&flagV.sp, "f", "default", "Requires the path to the storage file, otherwise the default storage is in memory.")
+	flag.StringVar(&flagV.dsn, "d", "", "DSN string connection to the database.")
 	flag.Parse()
 	// Далее проверяем, какие флаги и переменные окружения установлены
 	// И в соответствии с результатами переопределяем поля структуры Config
@@ -56,11 +61,34 @@ func ServerConfigurator(cfg *Config, flagV *FlagVars) {
 	if cfg.ServerAddress == "" {
 		cfg.ServerAddress = flagV.sa
 	}
+	if cfg.DSN == "" {
+		if flagV.dsn != "" {
+			cfg.DSN = flagV.dsn
+			cfg.Storage = postgres.NewClientPostgres(cfg.DSN)
+			cfg.Hash = randchars.URLHash{}
+			log.Println("INFO: postgresql database is used")
+			paramConfServerInfo(cfg)
+			return
+		}
+	} else {
+		cfg.Storage = postgres.NewClientPostgres(cfg.DSN)
+		cfg.Hash = randchars.URLHash{}
+		log.Println("INFO: postgresql database is used")
+		paramConfServerInfo(cfg)
+		return
+	}
 	if cfg.StoragePATH == "" {
-		if flagV.sp == "default" {
+		if flagV.sp == "default" && flagV.dsn == "" {
 			cfg.Storage = maps.NewStorage()
 			cfg.Hash = randchars.URLHash{}
 			log.Println("INFO: $FILE_STORAGE_PATH, and flag -f is empty, map storage is used")
+			paramConfServerInfo(cfg)
+			return
+		} else if flagV.dsn != "" {
+			cfg.DSN = flagV.dsn
+			cfg.Storage = postgres.NewClientPostgres(cfg.DSN)
+			cfg.Hash = randchars.URLHash{}
+			log.Println("INFO: postgresql database is used")
 			paramConfServerInfo(cfg)
 			return
 		}

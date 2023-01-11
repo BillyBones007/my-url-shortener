@@ -22,11 +22,14 @@ func (h *Handler) GetLongURLHandler(rw http.ResponseWriter, r *http.Request) {
 	mURL, err := h.Storage.SelectLongURL(&model)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
-	} else {
-		fmt.Println(mURL)
-		rw.Header().Set("Location", mURL.LongURL)
-		rw.WriteHeader(http.StatusTemporaryRedirect)
 	}
+	if mURL.LongURL == "" {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+	}
+	fmt.Println(mURL)
+	rw.Header().Set("Location", mURL.LongURL)
+	rw.WriteHeader(http.StatusTemporaryRedirect)
+
 }
 
 // Возвращает все когда-либо сокращенные пользователем url в json формате
@@ -52,4 +55,18 @@ func (h *Handler) GetAllURLsHandler(rw http.ResponseWriter, r *http.Request) {
 		rw.Write(b)
 	}
 
+}
+
+// Проверяет соединение с базой данных
+func (h *Handler) GetPing(rw http.ResponseWriter, r *http.Request) {
+	if err := h.Storage.Ping(r.Context()); err == nil {
+		fmt.Println("INFO: Connection is estabilished")
+		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+		rw.WriteHeader(http.StatusOK)
+		rw.Write([]byte("Connection is estabilished"))
+	} else {
+		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte("No connect to database"))
+	}
 }

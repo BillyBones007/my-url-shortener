@@ -1,10 +1,13 @@
 package maps
 
 import (
+	"context"
 	"errors"
 
 	"github.com/BillyBones007/my-url-shortener/internal/db/models"
 	"github.com/BillyBones007/my-url-shortener/internal/hasher"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // Тип для работы с мапой в роли основного хранилища
@@ -99,4 +102,29 @@ func (m *MapStorage) SelectAllForUUID(uuid string) ([]models.Model, error) {
 		return list, nil
 	}
 	return nil, nil
+}
+
+func (m *MapStorage) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
+	ct := pgconn.CommandTag{}
+	return ct, nil
+}
+
+func (m *MapStorage) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
+	return nil, nil
+}
+
+func (m *MapStorage) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
+	return nil
+}
+
+func (m *MapStorage) Begin(ctx context.Context) (pgx.Tx, error) {
+	return nil, nil
+}
+
+func (m *MapStorage) Close(ctx context.Context) error {
+	return nil
+}
+
+func (m *MapStorage) Ping(ctx context.Context) error {
+	return nil
 }
